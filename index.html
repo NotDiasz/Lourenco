@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Comprovante Estudantil — Uniube</title>
+  <meta name="description" content="Comprovante de matrícula estudantil — Universidade de Uberaba (Uniube)." />
+
+  <style>
+    /* =========================================================
+       CARTEIRINHA / COMPROVANTE ESTUDANTIL — Uniube
+       Base HTML/CSS. Dados dinâmicos ficam no objeto `dados`
+       no <script> ao final, para facilitar a migração p/ React.
+       ========================================================= */
+
+    :root {
+      --bg:        #f4f5f7;
+      --card:      #ffffff;
+      --border:    #e6e8ec;
+      --ink:       #2f333a;   /* títulos / texto escuro   */
+      --blue:      #3a5a99;   /* nome, CPF, labels azuis   */
+      --muted:     #83857a;   /* linha "Universidade..."   */
+      --muted-2:   #a1a296;   /* matrícula                 */
+      --gray-txt:  #575b62;   /* textos secundários        */
+      --dark-btn:  #24282e;   /* botões escuros            */
+      --dark-btn-h:#31363d;
+      --accent:    #2b83d6;   /* botão de acessibilidade   */
+      --shadow:    0 6px 24px rgba(23, 31, 51, .06), 0 1px 3px rgba(23, 31, 51, .05);
+      --radius:    12px;
+      --font: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100%;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* ---------- Barra superior ---------- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 28px clamp(20px, 5vw, 56px);
+    }
+
+    .topbar h1 {
+      font-size: clamp(20px, 3.2vw, 28px);
+      font-weight: 500;
+      color: #3b3f45;
+      letter-spacing: .2px;
+    }
+
+    /* ---------- Botões ---------- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--dark-btn);
+      padding: 11px 18px;
+      border-radius: 8px;
+      transition: background .18s ease, transform .05s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn:hover  { background: var(--dark-btn-h); }
+    .btn:active { transform: translateY(1px); }
+    .btn svg { flex: none; }
+
+    /* ---------- Layout principal ---------- */
+    .wrap {
+      padding: 4px clamp(16px, 5vw, 56px) 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+    }
+
+    /* ---------- Card do comprovante ---------- */
+    .card {
+      width: 100%;
+      max-width: 720px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(22px, 4vw, 34px) clamp(22px, 4.5vw, 40px);
+    }
+
+    .card__logo {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 26px;
+    }
+    .card__logo img { height: 42px; width: auto; }
+
+    .card__body {
+      display: flex;
+      gap: clamp(20px, 4vw, 34px);
+      align-items: flex-start;
+    }
+
+    /* Coluna esquerda: foto + QR */
+    .media { flex: none; display: flex; flex-direction: column; gap: 16px; }
+
+    .photo {
+      width: 150px;
+      height: 168px;
+      border-radius: 8px;
+      background: #ededed;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .photo svg { width: 78%; height: auto; color: #b9b9b9; }
+
+    .qr {
+      width: 138px;
+      height: 138px;
+      background: #fff;
+    }
+    .qr canvas { width: 100%; height: 100%; display: block; }
+
+    /* Coluna direita: informações */
+    .info { flex: 1 1 auto; min-width: 0; }
+
+    .info .name {
+      color: var(--blue);
+      font-size: clamp(17px, 2.4vw, 20px);
+      font-weight: 600;
+      line-height: 1.28;
+      letter-spacing: .2px;
+    }
+    .info .matricula {
+      color: var(--muted-2);
+      font-size: 12.5px;
+      margin-top: 3px;
+      letter-spacing: .3px;
+    }
+
+    .info .block { margin-top: 18px; }
+
+    .info .univ {
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .info .course {
+      color: #3d4048;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      margin-top: 2px;
+      text-transform: uppercase;
+    }
+
+    .info .field {
+      color: var(--blue);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .info .field b { font-weight: 700; }
+
+    .info .meta {
+      color: var(--gray-txt);
+      font-size: 14.5px;
+      line-height: 1.7;
+    }
+    .info .meta b { color: #2c3038; font-weight: 700; }
+
+    /* ---------- Botão de acessibilidade (flutuante) ---------- */
+    .a11y {
+      position: fixed;
+      right: 0;
+      top: 62%;
+      transform: translateY(-50%);
+      background: var(--accent);
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      width: 40px;
+      height: 44px;
+      border-radius: 8px 0 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: -2px 2px 10px rgba(0,0,0,.15);
+      z-index: 50;
+    }
+    .a11y:hover { background: #2472c0; }
+
+    .a11y-menu {
+      position: fixed;
+      right: 14px;
+      top: calc(62% + 34px);
+      transform: translateY(-50%);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 8px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 51;
+      min-width: 190px;
+    }
+    .a11y-menu.open { display: flex; }
+    .a11y-menu button {
+      font-family: inherit;
+      font-size: 13.5px;
+      text-align: left;
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .a11y-menu button:hover { background: #f1f3f5; }
+
+    /* Modo alto contraste (acessibilidade) */
+    body.contrast {
+      --bg: #0e1116;
+      --card: #161a20;
+      --border: #2a2f38;
+      --ink: #f3f4f6;
+      --blue: #7aa2e3;
+      --muted: #c6c8bd;
+      --muted-2: #9a9c90;
+      --gray-txt: #cbd0d6;
+      --dark-btn: #3a4150;
+      --dark-btn-h: #464e5e;
+    }
+    body.contrast .info .meta b { color: #fff; }
+    body.contrast .info .course { color: #e5e7eb; }
+    body.contrast .photo { background: #232833; }
+
+    /* ---------- Responsivo (mobile) ---------- */
+    @media (max-width: 560px) {
+      .topbar { padding: 20px 18px; }
+      .card__body {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .media {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 18px;
+      }
+      .info { width: 100%; }
+      .info .field, .info .course { justify-content: center; }
+      .qr { width: 120px; height: 120px; }
+      .photo { width: 120px; height: 140px; }
+    }
+
+    /* ---------- Impressão / salvar em PDF ---------- */
+    @media print {
+      body { background: #fff; }
+      .topbar .btn, .a11y, .a11y-menu, #btnSituacao { display: none !important; }
+      .card { box-shadow: none; border-color: #d9d9d9; }
+      .wrap { padding-top: 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ================= Barra superior ================= -->
+  <header class="topbar">
+    <h1>Comprovante Estudantil</h1>
+    <a href="#" class="btn" id="btnVoltar" aria-label="Voltar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none" opacity="0"></circle>
+        <path d="M15 6l-6 6 6 6"></path>
+      </svg>
+      Voltar
+    </a>
+  </header>
+
+  <!-- ================= Conteúdo ================= -->
+  <main class="wrap">
+    <!-- Card do comprovante -->
+    <section class="card" aria-label="Comprovante de matrícula">
+      <div class="card__logo">
+        <img src="public/logo_azul.png" alt="Uniube — Universidade de Uberaba" />
+      </div>
+
+      <div class="card__body">
+        <!-- Foto + QR Code -->
+        <div class="media">
+          <div class="photo" id="foto" aria-label="Foto do estudante">
+            <!-- Silhueta placeholder (substituída pela foto real quando houver) -->
+            <svg viewBox="0 0 128 140" fill="currentColor" aria-hidden="true">
+              <circle cx="64" cy="44" r="30"></circle>
+              <path d="M12 140c0-30 24-50 52-50s52 20 52 50z"></path>
+            </svg>
+          </div>
+          <div class="qr" aria-label="QR Code de validação">
+            <canvas id="qr" width="300" height="300"></canvas>
+          </div>
+        </div>
+
+        <!-- Informações do estudante -->
+        <div class="info">
+          <div class="name" id="f-nome"></div>
+          <div class="matricula" id="f-matricula"></div>
+
+          <div class="block">
+            <div class="univ" id="f-univ"></div>
+            <div class="course" id="f-curso"></div>
+          </div>
+
+          <div class="block">
+            <div class="field"><b>CPF:</b> <span id="f-cpf"></span></div>
+            <div class="field"><b>Nascimento:</b> <span id="f-nascimento"></span></div>
+          </div>
+
+          <div class="block">
+            <div class="meta">
+              Documento emitido às <b id="f-hora"></b> do dia <b id="f-data"></b>
+            </div>
+            <div class="meta">
+              Código de controle: <b id="f-codigo"></b>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ação -->
+    <button class="btn" id="btnSituacao">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+      Visualizar Situação Acadêmica
+    </button>
+  </main>
+
+  <!-- ================= Acessibilidade ================= -->
+  <button class="a11y" id="a11yBtn" aria-label="Opções de acessibilidade" aria-expanded="false">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <circle cx="12" cy="4" r="2"></circle>
+      <path d="M20 7c-2.5 1-5 1.5-8 1.5S6.5 8 4 7l-.5 1.9C5.6 9.7 7.9 10.2 10 10.4V13l-1.8 6.5 1.9.5L12 14l1.9 6 1.9-.5L14 13v-2.6c2.1-.2 4.4-.7 6.5-1.5z"></path>
+    </svg>
+  </button>
+  <div class="a11y-menu" id="a11yMenu" role="menu">
+    <button type="button" data-act="font-up"   role="menuitem">A+ &nbsp; Aumentar fonte</button>
+    <button type="button" data-act="font-down" role="menuitem">A− &nbsp; Diminuir fonte</button>
+    <button type="button" data-act="contrast"  role="menuitem">◐ &nbsp; Alto contraste</button>
+    <button type="button" data-act="reset"     role="menuitem">↺ &nbsp; Restaurar</button>
+  </div>
+
+  <!-- ================= Lógica / Dados ================= -->
+  <script>
+    /* ---------------------------------------------------------
+       DADOS DO ESTUDANTE
+       No app React, este objeto virá da API/props do backend.
+       Aqui é apenas o exemplo de aprovação do layout.
+       --------------------------------------------------------- */
+    const dados = {
+      nome:       "LOURENÇO CORREIA E SANTOS CARVALHO",
+      matricula:  "5166196",
+      instituicao:"Universidade de Uberaba",
+      curso:      "ANÁLISE E DESENVOLVIMENTO DE SISTEMAS",
+      cpf:        "154.880.796-61",
+      nascimento: "23/01/06",
+      hora:       "18:57:54",
+      data:       "04/07/2026",
+      codigo:     "HQY5.HBHX.EZ6Y.6N26",
+      fotoUrl:  "public/foto.jpg",  
+    };
+
+    /* Preenche o card com os dados */
+    function preencher(d) {
+      const set = (id, v) => { document.getElementById(id).textContent = v; };
+      set("f-nome", d.nome);
+      set("f-matricula", d.matricula);
+      set("f-univ", d.instituicao);
+      set("f-curso", d.curso);
+      set("f-cpf", d.cpf);
+      set("f-nascimento", d.nascimento);
+      set("f-hora", d.hora);
+      set("f-data", d.data);
+      set("f-codigo", d.codigo);
+
+      if (d.fotoUrl) {
+        const foto = document.getElementById("foto");
+        foto.innerHTML = '<img src="' + d.fotoUrl + '" alt="Foto do estudante" style="width:100%;height:100%;object-fit:cover" />';
+      }
+    }
+
+    /* ---------------------------------------------------------
+       QR CODE
+       Placeholder visual estável gerado a partir do código de
+       controle. No app real, troque por uma lib de QR (ex.:
+       qrcode) apontando para a URL de validação do comprovante.
+       --------------------------------------------------------- */
+    function desenharQR(canvas, texto) {
+      const ctx = canvas.getContext("2d");
+      const N = 25, size = canvas.width, cell = size / N;
+      let seed = 2166136261;
+      for (const ch of texto) seed = ((seed ^ ch.charCodeAt(0)) * 16777619) >>> 0;
+      const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, size, size);
+
+      const inFinder = (r, c) =>
+        (r < 7 && c < 7) || (r < 7 && c >= N - 7) || (r >= N - 7 && c < 7);
+
+      ctx.fillStyle = "#1f2530";
+      for (let r = 0; r < N; r++)
+        for (let c = 0; c < N; c++)
+          if (!inFinder(r, c) && rnd() > 0.5)
+            ctx.fillRect(Math.floor(c * cell), Math.floor(r * cell), Math.ceil(cell), Math.ceil(cell));
+
+      const finder = (or, oc) => {
+        ctx.fillStyle = "#1f2530"; ctx.fillRect(oc * cell, or * cell, 7 * cell, 7 * cell);
+        ctx.fillStyle = "#ffffff"; ctx.fillRect((oc + 1) * cell, (or + 1) * cell, 5 * cell, 5 * cell);
+        ctx.fillStyle = "#1f2530"; ctx.fillRect((oc + 2) * cell, (or + 2) * cell, 3 * cell, 3 * cell);
+      };
+      finder(0, 0); finder(0, N - 7); finder(N - 7, 0);
+    }
+
+    /* ---------------------------------------------------------
+       ACESSIBILIDADE
+       --------------------------------------------------------- */
+    (function acessibilidade() {
+      const btn = document.getElementById("a11yBtn");
+      const menu = document.getElementById("a11yMenu");
+      let escala = 100;
+
+      const aplicar = () => { document.documentElement.style.fontSize = escala + "%"; };
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const aberto = menu.classList.toggle("open");
+        btn.setAttribute("aria-expanded", aberto);
+      });
+      document.addEventListener("click", () => menu.classList.remove("open"));
+      menu.addEventListener("click", (e) => e.stopPropagation());
+
+      menu.addEventListener("click", (e) => {
+        const act = e.target.closest("button")?.dataset.act;
+        if (!act) return;
+        if (act === "font-up")   { escala = Math.min(140, escala + 10); aplicar(); }
+        if (act === "font-down") { escala = Math.max(80, escala - 10);  aplicar(); }
+        if (act === "contrast")  { document.body.classList.toggle("contrast"); }
+        if (act === "reset")     { escala = 100; aplicar(); document.body.classList.remove("contrast"); }
+      });
+    })();
+
+    /* Botões placeholder (comportamento real virá no app) */
+    document.getElementById("btnVoltar").addEventListener("click", (e) => {
+      e.preventDefault(); history.length > 1 ? history.back() : null;
+    });
+    document.getElementById("btnSituacao").addEventListener("click", () => {
+      alert("Situação Acadêmica — a ser integrada no app React.");
+    });
+
+    /* Inicialização */
+    preencher(dados);
+    desenharQR(document.getElementById("qr"), dados.codigo);
+  </script>
+</body>
+</html>
